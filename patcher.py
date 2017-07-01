@@ -177,15 +177,15 @@ else:
     def retrieve_version_info():
         pages = OrderedDict([
             ('keys', {
-                'url': 'https://github.com/clugh/coc-proxy/wiki/Keys.md',
+                'url': 'https://raw.githubusercontent.com/iGio90/coc-patcher/master/Keys.md',
                 'fields' : ['version', 'key']
             }),
             ('key-offsets', {
-                'url': 'https://github.com/clugh/coc-proxy/wiki/Key-Offsets.md',
+                'url': 'https://raw.githubusercontent.com/iGio90/coc-patcher/master/Key-Offsets.md',
                 'fields' : ['version', 'arch', 'md5', 'offset']
             }),
             ('url-offsets', {
-                'url': 'https://github.com/clugh/coc-proxy/wiki/URL-Offsets.md',
+                'url': 'https://raw.githubusercontent.com/iGio90/coc-patcher/master/URL-Offsets.md',
                 'fields' : ['version', 'arch', 'md5', 'offset']
             })
         ])

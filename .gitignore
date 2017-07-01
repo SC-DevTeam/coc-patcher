@@ -2,4 +2,5 @@
 *.pyc
 *.apk
 *.keystore
+config.json
 cache.sqlite
