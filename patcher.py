@@ -286,112 +286,16 @@ if root.get('package') != config['package']:
 
 print('Checking libg.so ...')
 
-if not os.path.isfile(LIBG_X86):
+if not os.path.isfile(LIBG_ARM):
     print('ERROR: arm libg.so is missing.', file=sys.stderr)
     sys.exit(1)
 
-if not os.path.isfile(LIBG_X86):
-    print('ERROR: x86 libg.so is missing.', file=sys.stderr)
-    sys.exit(1)
-
-result = subprocess.run([config['paths']['md5sum'], LIBG_ARM], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get arm libg.so MD5.', file=sys.stderr)
-    print(result.stderr)
-    print(result.stdout)
-    sys.exit(1)
-else:
-    if result.stdout.split()[0].lstrip('\\') != info['arm']['md5']:
-        print('ERROR: arm libg.so MD5 is incorrect.', file=sys.stderr)
-        sys.exit(1)
-
-result = subprocess.run([config['paths']['md5sum'], LIBG_X86], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get arm libg.so MD5.', file=sys.stderr)
-    sys.exit(1)
-else:
-    if result.stdout.split()[0].lstrip('\\') != info['x86']['md5']:
-        print('ERROR: x86 libg.so MD5 is incorrect.', file=sys.stderr)
-        sys.exit(1)
-
-print('Checking keys ...')
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_ARM), 'skip={}'.format(info['arm']['key-offset']), 'bs=1', 'count=32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get current arm libg.so key.', file=sys.stderr)
-    sys.exit(1)
-else:
-    if result.stdout.hex() != info['key']:
-        print('ERROR: Current arm libg.so key is incorrect.', file=sys.stderr)
-        sys.exit(1)
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_X86), 'skip={}'.format(info['x86']['key-offset']), 'bs=1', 'count=32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get current x86 libg.so key.', file=sys.stderr)
-    sys.exit(1)
-else:
-    if result.stdout.hex() != info['key']:
-        print('ERROR: Current x86 libg.so key is incorrect.', file=sys.stderr)
-        sys.exit(1)
-
-print('Checking URLs ...')
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_ARM), 'skip={}'.format(info['arm']['url-offset']), 'bs=1', 'count=22'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get current arm libg.so URL.', file=sys.stderr)
-    sys.exit(1)
-else:
-    try:
-        result.stdout.decode()
-    except UnicodeDecodeError as e:
-        print('ERROR: Failed to get current arm libg.so URL.', file=sys.stderr)
-        sys.exit(1)
-    else:
-        if result.stdout.decode() != 'gamea.clashofclans.com':
-            print('ERROR: Current arm libg.so URL is incorrect.', file=sys.stderr)
-            sys.exit(1)
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_X86), 'skip={}'.format(info['x86']['url-offset']), 'bs=1', 'count=22'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get current x86 libg.so URL.', file=sys.stderr)
-    sys.exit(1)
-else:
-    try:
-        result.stdout.decode()
-    except UnicodeDecodeError as e:
-        print('ERROR: Failed to get current x86 libg.so URL.', file=sys.stderr)
-        sys.exit(1)
-    else:
-        if result.stdout.decode() != 'gamea.clashofclans.com':
-            print('ERROR: Current x86 libg.so URL is incorrect.', file=sys.stderr)
-            sys.exit(1)
-
 print('Patching keys ...')
-
 result = subprocess.run([config['paths']['dd'], 'of={}'.format(LIBG_ARM), 'seek={}'.format(info['arm']['key-offset']), 'bs=1', 'count=32', 'conv=notrunc'], input=bytes.fromhex(config['key']), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 try:
     result.check_returncode()
 except subprocess.CalledProcessError as e:
     print('ERROR: Failed to patch arm libg.so key.', file=sys.stderr)
-    sys.exit(1)
-
-result = subprocess.run([config['paths']['dd'], 'of={}'.format(LIBG_X86), 'seek={}'.format(info['x86']['key-offset']), 'bs=1', 'count=32', 'conv=notrunc'], input=bytes.fromhex(config['key']), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to patch x86 libg.so key.', file=sys.stderr)
     sys.exit(1)
 
 print('Patching URLs ...')
@@ -403,72 +307,21 @@ except subprocess.CalledProcessError as e:
     print('ERROR: Failed to patch arm libg.so URL.', file=sys.stderr)
     sys.exit(1)
 
-result = subprocess.run([config['paths']['dd'], 'of={}'.format(LIBG_X86), 'seek={}'.format(info['x86']['url-offset']), 'bs=1', 'count=22', 'conv=notrunc'], input=config['url'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+print('Patching SharedKeyGen #1...')
+result = subprocess.run([config['paths']['dd'], 'of={}'.format(LIBG_ARM), 'seek=4248312', 'bs=1', 'count=1', 'conv=notrunc'], input=bytes.fromhex("14"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 try:
     result.check_returncode()
 except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to patch x86 libg.so URL.', file=sys.stderr)
+    print('ERROR: Failed to patch arm libg.so SharedKeyGen #1.', file=sys.stderr)
     sys.exit(1)
 
-print('Verifying keys ...')
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_ARM), 'skip={}'.format(info['arm']['key-offset']), 'bs=1', 'count=32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+print('Patching SharedKeyGen #2...')
+result = subprocess.run([config['paths']['dd'], 'of={}'.format(LIBG_ARM), 'seek=4251436', 'bs=1', 'count=1', 'conv=notrunc'], input=bytes.fromhex("14"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 try:
     result.check_returncode()
 except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get new arm libg.so key.', file=sys.stderr)
+    print('ERROR: Failed to patch arm libg.so SharedKeyGen #2.', file=sys.stderr)
     sys.exit(1)
-else:
-    if result.stdout.hex() != config['key']:
-        print('ERROR: New arm libg.so key is incorrect.', file=sys.stderr)
-        sys.exit(1)
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_X86), 'skip={}'.format(info['x86']['key-offset']), 'bs=1', 'count=32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get new x86 libg.so key.', file=sys.stderr)
-    sys.exit(1)
-else:
-    if result.stdout.hex() != config['key']:
-        print('ERROR: New x86 libg.so key is incorrect.', file=sys.stderr)
-        sys.exit(1)
-
-print('Verifying URLs ...')
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_ARM), 'skip={}'.format(info['arm']['url-offset']), 'bs=1', 'count=22'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get new arm libg.so URL.', file=sys.stderr)
-    sys.exit(1)
-else:
-    try:
-        result.stdout.decode()
-    except UnicodeDecodeError as e:
-        print('ERROR: Failed to get new arm libg.so URL.', file=sys.stderr)
-        sys.exit(1)
-    else:
-        if result.stdout.decode().rstrip() != config['url']:
-            print('ERROR: New arm libg.so URL is incorrect.', file=sys.stderr)
-            sys.exit(1)
-
-result = subprocess.run([config['paths']['dd'], 'if={}'.format(LIBG_X86), 'skip={}'.format(info['x86']['url-offset']), 'bs=1', 'count=22'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-try:
-    result.check_returncode()
-except subprocess.CalledProcessError as e:
-    print('ERROR: Failed to get new x86 libg.so URL.', file=sys.stderr)
-    sys.exit(1)
-else:
-    try:
-        result.stdout.decode()
-    except UnicodeDecodeError as e:
-        print('ERROR: Failed to get new x86 libg.so URL.', file=sys.stderr)
-        sys.exit(1)
-    else:
-        if result.stdout.decode().rstrip() != config['url']:
-            print('ERROR: New x86 libg.so URL is incorrect.', file=sys.stderr)
-            sys.exit(1)
 
 print('Backing up original APK ...')
 
