@@ -9,3 +9,5 @@ Changes:
 Limitations/bugs:
 * Update is broken. I'll debug why later, you will need to install the original (unpatched) apk and let it update. Replace the patched libg in /data/data
 
+Patch logic:
+* http://www.giovanni-rocca.com/clash-clans-supercell-new-encryption-reverse-engineering/
